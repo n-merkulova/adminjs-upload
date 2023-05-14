@@ -15,7 +15,6 @@
     "noImplicitThis": true,
     "moduleResolution": "nodenext",
     "module": "nodenext",
-
     "baseUrl": ".",
     "paths": {
       "react": ["node_modules/@types/react"]

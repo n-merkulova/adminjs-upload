@@ -5,7 +5,7 @@
   "exports": {
     ".": {
       "import": "./build/index.js",
-      "types": "./types/index.d.ts"
+      "types": "./build/types/index.d.ts"
     }
   },
   "private": false,
@@ -13,7 +13,7 @@
   "license": "MIT",
   "scripts": {
     "release": "semantic-release",
-    "build": "tsc",
+    "build": "tsc --module esnext --target esnext --declarationDir build/types",
     "clean": "rm -fr build && mkdir build && rm -fr types && mkdir types",
     "dev": "yarn clean && tsc --watch",
     "test": "TS_NODE_FILES=true mocha --loader=ts-node/esm ./src/**/*.spec.ts",
