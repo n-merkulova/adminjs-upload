@@ -31,6 +31,12 @@ export type AWSOptions = {
    */
   bucket: string;
   /**
+   * The endpoint URI to send requests to.
+   * The default endpoint is built from the configured region.
+   * Note that `bucket` should not appear in `endpoint`.
+   */
+  endpoint?: string;
+  /**
    * indicates how long links should be available after page load (in minutes).
    * Default to 24h. If set to 0 adapter will mark uploaded files as PUBLIC ACL.
    */
@@ -46,10 +52,15 @@ try {
   AWS_S3 = null
 }
 
+/**
+ * Generic S3 Provider for S3-compatible Object Storage Services, like Tencent Cloud COS.
+ */
 export class AWSProvider extends BaseProvider {
   protected s3: S3
 
   public expires: number
+
+  public endpoint?: string
 
   constructor(options: AWSOptions) {
     super(options.bucket)
@@ -58,8 +69,11 @@ export class AWSProvider extends BaseProvider {
       throw new Error(ERROR_MESSAGES.NO_AWS_SDK)
     }
 
-    this.expires = options.expires ?? DAY_IN_MINUTES
-    this.s3 = new AWS_S3(options)
+    const newOptions = options
+
+    this.expires = newOptions.expires ?? DAY_IN_MINUTES
+    this.endpoint = newOptions.endpoint
+    this.s3 = new AWS_S3(newOptions)
   }
 
   public async upload(file: UploadedFile, key: string): Promise<PutObjectCommandOutput> {
@@ -87,7 +101,15 @@ export class AWSProvider extends BaseProvider {
         { expiresIn: this.expires },
       )
     }
-    // https://bucket.s3.amazonaws.com/key
-    return `https://${bucket}.s3.amazonaws.com/${key}`
+
+    let keyedPath: string
+
+    if (this.endpoint) {
+      keyedPath = `https://${bucket}.${this.endpoint}/${key}`
+    } else {
+      // https://bucket.s3.amazonaws.com/key
+      keyedPath = `https://${bucket}.s3.amazonaws.com/${key}`
+    }
+    return keyedPath
   }
 }
